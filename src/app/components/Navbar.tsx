@@ -2,31 +2,55 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, FileSearch, Package, Bell, Award, Newspaper } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Home, 
+  BookOpen, 
+  FileSearch, 
+  Package, 
+  Bell, 
+  Award, 
+  Newspaper,
+  LayoutDashboard,
+  Search,
+  User,
+  GraduationCap
+} from 'lucide-react';
+import { useState } from 'react';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const navItems = [
-    { name: 'Home', href: '/', icon: Home },
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Exam Prep', href: '/exam-prep', icon: BookOpen },
     { name: 'Documents', href: '/documents', icon: FileSearch },
     { name: 'Lost & Found', href: '/lost-found', icon: Package },
-    { name: 'Notifications', href: '/notifications', icon: Bell },
     { name: 'Rewards', href: '/rewards', icon: Award },
     { name: 'News', href: '/news', icon: Newspaper },
   ];
 
   return (
-    <nav className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-50 shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-xl shadow-lg shadow-purple-500/50 group-hover:rotate-12 transition-transform duration-300"></div>
-            <span className="font-black text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">SSP</span>
+    <nav className="sticky top-0 z-[100] w-full bg-white/70 backdrop-blur-xl border-b border-slate-200/60 transition-all duration-300">
+      <div className="max-w-[1500px] mx-auto px-6 md:px-10">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <motion.div 
+              whileHover={{ rotate: 5, scale: 1.05 }}
+              className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200 transition-transform"
+            >
+              <GraduationCap className="w-6 h-6 text-white" />
+            </motion.div>
+            <div className="flex flex-col">
+              <span className="font-serif text-xl font-bold text-slate-900 tracking-tight leading-none">Scholar</span>
+              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">Platform</span>
+            </div>
           </Link>
 
-          <div className="hidden md:flex space-x-2">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-1 bg-slate-100/50 p-1.5 rounded-2xl border border-slate-200/50">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -34,56 +58,52 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 group ${
+                  className={`relative flex items-center gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 group ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30'
-                      : 'text-gray-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700'
+                      ? 'bg-white text-indigo-600 shadow-sm border border-slate-200'
+                      : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? '' : 'group-hover:scale-110 transition-transform'}`} />
-                  <span className="text-sm font-bold">{item.name}</span>
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'group-hover:scale-110 transition-transform duration-300'}`} />
+                  <span className="text-sm font-bold tracking-tight">{item.name}</span>
                   {isActive && (
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-t-full"></div>
+                    <motion.div 
+                      layoutId="activeNavTab"
+                      className="absolute inset-0 bg-white rounded-xl -z-10 shadow-sm border border-slate-200"
+                    />
                   )}
                 </Link>
               );
             })}
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="relative group cursor-pointer">
-              <div className="p-2 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all">
-                <Bell className="w-6 h-6 text-gray-600 group-hover:text-blue-600 group-hover:scale-110 transition-all" />
-                <span className="absolute top-0 right-0 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg animate-pulse">
-                  3
-                </span>
-              </div>
+          {/* Right Actions */}
+          <div className="flex items-center gap-4">
+            <div className={`relative group hidden xl:block transition-all duration-500 ${isSearchFocused ? 'w-64' : 'w-48'}`}>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                className="w-full bg-slate-100/80 border border-slate-200/50 rounded-xl py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/30 focus:bg-white transition-all"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link href="/notifications" className="relative p-2.5 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition-all group">
+                <Bell className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+              </Link>
+              
+              <Link href="/profile" className="flex items-center gap-3 p-1.5 pr-4 rounded-xl border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
+                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center font-bold text-slate-600 border border-slate-200 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all">
+                  S
+                </div>
+                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors hidden sm:block">Profile</span>
+              </Link>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      <div className="md:hidden border-t border-gray-200/50 bg-white/90 backdrop-blur-lg">
-        <div className="grid grid-cols-4 gap-2 p-3">
-          {navItems.slice(0, 4).map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-col items-center py-3 rounded-xl transition-all ${
-                  isActive 
-                    ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30' 
-                    : 'text-gray-600 hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50'
-                }`}
-              >
-                <Icon className="w-6 h-6" />
-                <span className="text-xs mt-1 font-semibold">{item.name}</span>
-              </Link>
-            );
-          })}
         </div>
       </div>
     </nav>
