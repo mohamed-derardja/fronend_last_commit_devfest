@@ -23,7 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+# .env*.local # Removed by Orchids to allow .env files
 
 # vercel
 .vercel
