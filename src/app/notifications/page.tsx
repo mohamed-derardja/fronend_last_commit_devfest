@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bell, 
   Calendar,
@@ -15,7 +16,14 @@ import {
   BookOpen,
   Package,
   Briefcase,
-  TrendingUp
+  TrendingUp,
+  Sparkles,
+  ChevronRight,
+  ShieldCheck,
+  User,
+  Zap,
+  Activity,
+  X
 } from 'lucide-react';
 
 type NotificationType = 'deadline' | 'task' | 'match' | 'opportunity' | 'update';
@@ -31,381 +39,244 @@ interface Notification {
   priority: NotificationPriority;
   icon: any;
   color: string;
+  bg: string;
 }
 
 export default function NotificationsPage() {
-  const [filter, setFilter] = useState<'all' | NotificationType>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | NotificationType>('all');
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 1,
       type: 'deadline',
-      title: 'Exam Deadline Approaching',
-      message: 'Mathematics exam in 3 days - Dec 25, 2025',
+      title: 'Final Thesis Submission',
+      message: 'Advanced Neural Systems thesis draft due in 24 hours.',
       time: '1 hour ago',
       read: false,
       priority: 'high',
-      icon: Calendar,
-      color: 'red'
+      icon: Clock,
+      color: 'text-rose-600',
+      bg: 'bg-rose-50'
     },
     {
       id: 2,
       type: 'match',
-      title: 'Lost Item Match Found',
-      message: 'Your black laptop might have been found! 95% match confidence.',
+      title: 'Neural Match Detected',
+      message: 'A Black HP EliteBook matching your lost report was found in the Library.',
       time: '2 hours ago',
       read: false,
       priority: 'high',
       icon: Package,
-      color: 'green'
+      color: 'text-indigo-600',
+      bg: 'bg-indigo-50'
     },
     {
       id: 3,
       type: 'task',
-      title: 'Task Reward Available',
-      message: 'Complete your Physics quiz today to earn +1 TD point!',
+      title: 'Merit Reward Available',
+      message: 'Score 80%+ on your next quiz to unlock the "Early Achiever" badge.',
       time: '3 hours ago',
       read: false,
       priority: 'medium',
-      icon: CheckCircle,
-      color: 'blue'
+      icon: Zap,
+      color: 'text-amber-600',
+      bg: 'bg-amber-50'
     },
     {
       id: 4,
       type: 'opportunity',
-      title: 'New Internship Posted',
-      message: 'Software Development Intern at Tech Solutions DZ - 95% match',
+      title: 'High-Match Internship',
+      message: 'Global Tech DZ posted a "Machine Learning Intern" role. 98% profile match.',
       time: '5 hours ago',
       read: true,
       priority: 'medium',
       icon: Briefcase,
-      color: 'purple'
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50'
     },
     {
       id: 5,
-      type: 'deadline',
-      title: 'Scholarship Deadline',
-      message: 'Women in Technology Scholarship - 1 day remaining',
-      time: '8 hours ago',
-      read: true,
-      priority: 'high',
-      icon: Calendar,
-      color: 'orange'
-    },
-    {
-      id: 6,
       type: 'update',
-      title: 'Program Schedule Change',
-      message: 'Computer Science 301 moved to Tuesday 10:00 AM',
+      title: 'Campus Infrastructure',
+      message: 'Library 3rd floor neural hub is now fully operational with 5G connectivity.',
       time: '1 day ago',
       read: true,
       priority: 'low',
-      icon: Info,
-      color: 'gray'
-    },
-    {
-      id: 7,
-      type: 'task',
-      title: 'Assignment Due Tomorrow',
-      message: 'Data Structures homework - submission deadline Dec 19, 2025',
-      time: '1 day ago',
-      read: true,
-      priority: 'high',
-      icon: AlertTriangle,
-      color: 'yellow'
-    },
+      icon: Activity,
+      color: 'text-blue-600',
+      bg: 'bg-blue-50'
+    }
   ]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const filteredNotifications = filter === 'all' 
-    ? notifications 
-    : notifications.filter(n => n.type === filter);
-
-  const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.05 }
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-  };
-
-  const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0 }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden">
+      <div className="ivy-mesh" />
+      <div className="grain" />
       <Navbar />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-[1200px] mx-auto px-6 lg:px-10 py-12 relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                <Bell className="w-8 h-8 text-purple-600" />
-                Notifications
-                {unreadCount > 0 && (
-                  <span className="bg-red-500 text-white text-sm px-3 py-1 rounded-full">
-                    {unreadCount} new
-                  </span>
-                )}
-              </h1>
-              <p className="text-gray-600 mt-2">Stay updated with deadlines, tasks, and opportunities</p>
-            </div>
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              <Settings className="w-5 h-5" />
-              Settings
+        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2"
+            >
+              <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-widest">Neural Alert System</span>
+              <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                {unreadCount} Critical Unread
+              </span>
+            </motion.div>
+            <motion.h1 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-5xl font-serif font-semibold tracking-tight text-slate-900"
+            >
+              System <span className="text-indigo-600">Pulse</span>
+            </motion.h1>
+            <p className="text-slate-500 font-medium text-lg">Real-time synchronization of academic deadlines and campus events.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-indigo-200 transition-all text-slate-600 hover:text-indigo-600 shadow-sm">
+              <Settings className="w-6 h-6" />
+            </button>
+            <button 
+              onClick={() => setNotifications(notifications.map(n => ({...n, read: true})))}
+              className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg"
+            >
+              Synchronize All
             </button>
           </div>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-20">
-              <h3 className="font-bold text-gray-900 mb-4">Filter</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Filters Sidebar */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="academic-card p-6 !bg-white">
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Neural Filters</h2>
               <div className="space-y-2">
-                <button
-                  onClick={() => setFilter('all')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    filter === 'all' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">All Notifications</span>
-                    <span className="text-sm">{notifications.length}</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setFilter('deadline')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    filter === 'deadline' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span className="font-medium">Deadlines</span>
-                    </div>
-                    <span className="text-sm">{notifications.filter(n => n.type === 'deadline').length}</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setFilter('task')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    filter === 'task' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" />
-                      <span className="font-medium">Tasks</span>
-                    </div>
-                    <span className="text-sm">{notifications.filter(n => n.type === 'task').length}</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setFilter('match')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    filter === 'match' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4" />
-                      <span className="font-medium">Lost & Found</span>
-                    </div>
-                    <span className="text-sm">{notifications.filter(n => n.type === 'match').length}</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setFilter('opportunity')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    filter === 'opportunity' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4" />
-                      <span className="font-medium">Opportunities</span>
-                    </div>
-                    <span className="text-sm">{notifications.filter(n => n.type === 'opportunity').length}</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setFilter('update')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    filter === 'update' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Info className="w-4 h-4" />
-                      <span className="font-medium">Updates</span>
-                    </div>
-                    <span className="text-sm">{notifications.filter(n => n.type === 'update').length}</span>
-                  </div>
-                </button>
-              </div>
-
-              {unreadCount > 0 && (
-                <div className="mt-6 pt-4 border-t border-gray-200">
+                {[
+                  { id: 'all', label: 'All Streams', icon: Activity },
+                  { id: 'deadline', label: 'Deadlines', icon: Clock },
+                  { id: 'match', label: 'Item Matches', icon: Package },
+                  { id: 'task', label: 'Merit Tasks', icon: Zap },
+                  { id: 'opportunity', label: 'Careers', icon: Briefcase },
+                ].map((f) => (
                   <button
-                    onClick={markAllAsRead}
-                    className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                    key={f.id}
+                    onClick={() => setActiveFilter(f.id as any)}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
+                      activeFilter === f.id ? 'bg-indigo-50 text-indigo-600 font-bold border border-indigo-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
                   >
-                    Mark All as Read
+                    <div className="flex items-center gap-3">
+                      <f.icon className="w-4 h-4" />
+                      <span className="text-sm">{f.label}</span>
+                    </div>
+                    {f.id === 'all' && unreadCount > 0 && (
+                      <span className="w-5 h-5 rounded-lg bg-rose-500 text-white text-[10px] flex items-center justify-center font-black">{unreadCount}</span>
+                    )}
                   </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="academic-card p-6 !bg-indigo-600 text-white">
+              <ShieldCheck className="w-8 h-8 text-indigo-200 mb-4" />
+              <h3 className="font-serif font-bold text-lg mb-2">Priority Guard</h3>
+              <p className="text-indigo-100/70 text-xs leading-relaxed mb-6">Critical deadline alerts are automatically pinned to your mobile dashboard.</p>
+              <button className="w-full py-3 bg-white/10 backdrop-blur-md text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10">Configure Alerts</button>
+            </div>
+          </div>
+
+          {/* Notifications Feed */}
+          <div className="lg:col-span-9 space-y-6">
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-4"
+            >
+              {notifications
+                .filter(n => activeFilter === 'all' || n.type === activeFilter)
+                .map((n) => (
+                  <motion.div
+                    key={n.id}
+                    variants={itemVariants}
+                    className={`group academic-card p-6 flex items-start gap-6 transition-all border-2 ${
+                      !n.read ? 'bg-white border-indigo-200 shadow-lg shadow-indigo-100/20' : 'bg-slate-50/50 border-transparent opacity-80 hover:bg-white hover:border-slate-200'
+                    }`}
+                  >
+                    <div className={`w-14 h-14 rounded-2xl ${n.bg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-500`}>
+                      <n.icon className={`w-7 h-7 ${n.color}`} />
+                    </div>
+
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <h3 className={`font-bold text-lg ${!n.read ? 'text-slate-900' : 'text-slate-600'}`}>{n.title}</h3>
+                          {!n.read && <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{n.time}</span>
+                      </div>
+                      <p className={`text-sm font-medium leading-relaxed ${!n.read ? 'text-slate-600' : 'text-slate-400'}`}>{n.message}</p>
+                      
+                      <div className="flex items-center gap-4 pt-4">
+                        <button className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:underline flex items-center gap-1.5">
+                          Launch Module <ChevronRight className="w-3 h-3" />
+                        </button>
+                        {!n.read && (
+                          <button 
+                            onClick={() => setNotifications(notifications.map(notif => notnotif.id === n.id ? {...notif, read: true} : notif))}
+                            className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600"
+                          >
+                            Mark Read
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setNotifications(notifications.filter(notif => notif.id !== n.id))}
+                      className="p-2 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                ))}
+
+              {notifications.filter(n => activeFilter === 'all' || n.type === activeFilter).length === 0 && (
+                <div className="text-center py-20 bg-white/50 border border-slate-200 border-dashed rounded-[3rem]">
+                  <Sparkles className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="font-serif font-bold text-xl text-slate-900 mb-1">System Quiet</h3>
+                  <p className="text-slate-500 font-medium">No active alerts in this neural stream.</p>
                 </div>
               )}
-
-              {/* Quick Settings */}
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Quick Settings</h4>
-                <div className="space-y-2 text-sm">
-                  <label className="flex items-center justify-between">
-                    <span className="text-gray-700">Email Notifications</span>
-                    <input type="checkbox" defaultChecked className="w-4 h-4 text-purple-600 rounded" />
-                  </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-gray-700">Push Notifications</span>
-                    <input type="checkbox" defaultChecked className="w-4 h-4 text-purple-600 rounded" />
-                  </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-gray-700">SMS Alerts</span>
-                    <input type="checkbox" className="w-4 h-4 text-purple-600 rounded" />
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Notifications List */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="font-bold text-gray-900">
-                  {filter === 'all' ? 'All Notifications' : 
-                   filter.charAt(0).toUpperCase() + filter.slice(1) + ' Notifications'}
-                </h2>
-              </div>
-
-              <div className="divide-y divide-gray-200">
-                {filteredNotifications.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                    <p>No notifications to display</p>
-                  </div>
-                ) : (
-                  filteredNotifications.map((notification) => {
-                    const Icon = notification.icon;
-                    return (
-                      <div
-                        key={notification.id}
-                        className={`p-4 transition-colors ${
-                          !notification.read ? 'bg-blue-50' : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex gap-3">
-                          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                            notification.color === 'red' ? 'bg-red-100' :
-                            notification.color === 'green' ? 'bg-green-100' :
-                            notification.color === 'blue' ? 'bg-blue-100' :
-                            notification.color === 'purple' ? 'bg-purple-100' :
-                            notification.color === 'orange' ? 'bg-orange-100' :
-                            notification.color === 'yellow' ? 'bg-yellow-100' :
-                            'bg-gray-100'
-                          }`}>
-                            <Icon className={`w-5 h-5 ${
-                              notification.color === 'red' ? 'text-red-600' :
-                              notification.color === 'green' ? 'text-green-600' :
-                              notification.color === 'blue' ? 'text-blue-600' :
-                              notification.color === 'purple' ? 'text-purple-600' :
-                              notification.color === 'orange' ? 'text-orange-600' :
-                              notification.color === 'yellow' ? 'text-yellow-600' :
-                              'text-gray-600'
-                            }`} />
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className={`font-semibold ${
-                                  !notification.read ? 'text-gray-900' : 'text-gray-700'
-                                }`}>
-                                  {notification.title}
-                                </h3>
-                                {!notification.read && (
-                                  <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-                                )}
-                              </div>
-                              {notification.priority === 'high' && (
-                                <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded flex-shrink-0">
-                                  High Priority
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {notification.message}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <Clock className="w-3 h-3" />
-                                {notification.time}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {!notification.read && (
-                                  <button
-                                    onClick={() => markAsRead(notification.id)}
-                                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                                  >
-                                    Mark as read
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => deleteNotification(notification.id)}
-                                  className="text-gray-400 hover:text-red-600"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* Notification Settings Info */}
-            <div className="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-900 mb-2">Notification Preferences</h3>
-              <p className="text-sm text-purple-800 mb-3">
-                Customize when and how you receive notifications for different events
-              </p>
-              <div className="space-y-2 text-sm text-purple-800">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span><strong>3 days before:</strong> Exam deadlines, scholarship applications</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span><strong>1 day before:</strong> Task deadlines, assignment submissions</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span><strong>Instant:</strong> Lost & found matches, new opportunities</span>
-                </div>
-              </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </main>
+
+      {/* Background Decorations */}
+      <div className="absolute top-[10%] -left-[5%] w-[30%] h-[40%] bg-indigo-200/20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[10%] -right-[5%] w-[30%] h-[40%] bg-rose-200/20 blur-[120px] rounded-full pointer-events-none" />
     </div>
   );
 }
