@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Award, 
   Trophy,
@@ -14,7 +15,16 @@ import {
   Zap,
   Medal,
   Crown,
-  Flame
+  Flame,
+  Sparkles,
+  ChevronRight,
+  ArrowRight,
+  User,
+  Activity,
+  Cpu,
+  Bookmark,
+  Layers,
+  LayoutDashboard
 } from 'lucide-react';
 
 interface Task {
@@ -99,12 +109,12 @@ export default function RewardsPage() {
   ];
 
   const rewards = [
-    { name: 'Library Late Fee Waiver', cost: 200, available: true },
-    { name: 'Cafeteria 10% Discount', cost: 150, available: true },
-    { name: 'Priority Course Registration', cost: 500, available: false },
-    { name: 'Parking Permit (1 month)', cost: 300, available: true },
-    { name: 'Extra Study Room Hours', cost: 100, available: true },
-    { name: 'Custom Student ID Design', cost: 250, available: true },
+    { name: 'Library Late Fee Waiver', cost: 200, available: true, icon: Bookmark },
+    { name: 'Cafeteria 10% Discount', cost: 150, available: true, icon: Gift },
+    { name: 'Priority Course Registration', cost: 500, available: false, icon: Layers },
+    { name: 'Parking Permit (1 month)', cost: 300, available: true, icon: Trophy },
+    { name: 'Extra Study Room Hours', cost: 100, available: true, icon: Clock },
+    { name: 'Custom Student ID Design', cost: 250, available: true, icon: Medal },
   ];
 
   const leaderboard = [
@@ -117,438 +127,407 @@ export default function RewardsPage() {
     { rank: 7, name: 'Fatima Z.', points: 720, level: 11, badge: '⭐' },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden">
+      <div className="ivy-mesh" />
+      <div className="grain" />
       <Navbar />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-[1400px] mx-auto px-6 lg:px-10 py-12 relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <Award className="w-8 h-8 text-yellow-600" />
-            Task Rewards & Achievements
-          </h1>
-          <p className="text-gray-600 mt-2">Complete tasks, earn points, and unlock rewards</p>
-        </div>
-
-        {/* User Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <Trophy className="w-6 h-6" />
-              <Crown className="w-5 h-5 opacity-50" />
-            </div>
-            <div className="text-2xl font-bold">{userStats.totalPoints}</div>
-            <div className="text-sm opacity-90">Total Points</div>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <Star className="w-6 h-6" />
-              <span className="text-xs opacity-75">LEVEL</span>
-            </div>
-            <div className="text-2xl font-bold">{userStats.level}</div>
-            <div className="text-sm opacity-90">Current Level</div>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <Medal className="w-6 h-6" />
-              <span className="text-xs opacity-75">RANK</span>
-            </div>
-            <div className="text-2xl font-bold">#{userStats.rank}</div>
-            <div className="text-sm opacity-90">Global Rank</div>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-lg p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <CheckCircle className="w-6 h-6" />
-              <Zap className="w-5 h-5 opacity-50" />
-            </div>
-            <div className="text-2xl font-bold">{userStats.completedTasks}</div>
-            <div className="text-sm opacity-90">Tasks Done</div>
-          </div>
-
-          <div className="bg-gradient-to-br from-red-400 to-orange-600 rounded-lg p-4 text-white">
-            <div className="flex items-center justify-between mb-2">
-              <Flame className="w-6 h-6" />
-              <span className="text-xs opacity-75">STREAK</span>
-            </div>
-            <div className="text-2xl font-bold">{userStats.streak}</div>
-            <div className="text-sm opacity-90">Day Streak</div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div className="flex overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                activeTab === 'overview'
-                  ? 'bg-yellow-50 text-yellow-700 border-b-2 border-yellow-700'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2"
             >
-              Overview
-            </button>
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                activeTab === 'tasks'
-                  ? 'bg-yellow-50 text-yellow-700 border-b-2 border-yellow-700'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold uppercase tracking-widest">Merit Rewards System</span>
+              <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" />
+                Live Leaderboard
+              </span>
+            </motion.div>
+            <motion.h1 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-5xl font-serif font-semibold tracking-tight text-slate-900"
             >
-              My Tasks
-            </button>
-            <button
-              onClick={() => setActiveTab('leaderboard')}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                activeTab === 'leaderboard'
-                  ? 'bg-yellow-50 text-yellow-700 border-b-2 border-yellow-700'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Leaderboard
-            </button>
-            <button
-              onClick={() => setActiveTab('rewards')}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                activeTab === 'rewards'
-                  ? 'bg-yellow-50 text-yellow-700 border-b-2 border-yellow-700'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              Rewards Store
-            </button>
+              Academic <span className="text-rose-600">Honors</span>
+            </motion.h1>
+            <p className="text-slate-500 font-medium text-lg">Convert your academic achievements into redeemable campus credits.</p>
           </div>
-        </div>
 
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Progress to Next Level */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-                Progress to Level {userStats.level + 1}
-              </h2>
-              <div className="mb-2">
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
-                  <span>Level {userStats.level}</span>
-                  <span>150 points to go</span>
-                  <span>Level {userStats.level + 1}</span>
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Global Points Earned</p>
+              <p className="text-2xl font-serif font-bold text-slate-900">1.2M</p>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+              <Trophy className="w-6 h-6 text-rose-600" />
+            </div>
+          </div>
+        </header>
+
+        {/* Dynamic Navigation Tabs */}
+        <nav className="flex items-center gap-1 p-1 bg-white/50 backdrop-blur-md border border-slate-200 rounded-2xl mb-12 w-fit max-w-full overflow-x-auto">
+          {[
+            { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+            { id: 'tasks', label: 'Merit Tasks', icon: Target },
+            { id: 'leaderboard', label: 'Leaderboard', icon: Medal },
+            { id: 'rewards', label: 'Store', icon: Gift },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2.5 px-6 py-3 rounded-xl transition-all duration-300 ${
+                  isActive
+                    ? 'bg-white text-rose-600 shadow-sm border border-slate-200 font-bold'
+                    : 'text-slate-500 hover:text-slate-900 font-medium'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-rose-600' : ''}`} />
+                <span className="text-sm tracking-tight">{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <AnimatePresence mode="wait">
+          {activeTab === 'overview' && (
+            <motion.div
+              key="overview"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-10"
+            >
+              {/* Stats Bento */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                {[
+                  { label: 'Total Merit', value: userStats.totalPoints, icon: Star, color: 'text-rose-600', bg: 'bg-rose-50' },
+                  { label: 'Current Level', value: userStats.level, icon: Zap, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                  { label: 'Global Rank', value: `#${userStats.rank}`, icon: Medal, color: 'text-amber-600', bg: 'bg-amber-50' },
+                  { label: 'Tasks Done', value: userStats.completedTasks, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                  { label: 'Study Streak', value: `${userStats.streak}d`, icon: Flame, color: 'text-orange-600', bg: 'bg-orange-50' },
+                ].map((stat, i) => (
+                  <motion.div key={i} variants={itemVariants} className="academic-card p-6 group">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center group-hover:scale-110 transition-transform duration-500`}>
+                        <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                      </div>
+                    </div>
+                    <p className="text-3xl font-serif font-bold text-slate-900 mb-1">{stat.value}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div className="lg:col-span-8 space-y-10">
+                  <div className="academic-card p-10 !bg-white">
+                    <div className="flex items-center justify-between mb-10">
+                      <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-rose-500" />
+                        Neural Progression Path
+                      </h2>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-widest">Level 13 Unlocks at 1000pts</span>
+                    </div>
+
+                    <div className="space-y-8">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-end">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">Current Progress</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">150 points to next tier</p>
+                          </div>
+                          <span className="text-3xl font-serif font-bold text-rose-600">85%</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: '85%' }}
+                            className="h-full bg-rose-600 rounded-full"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 border-l-4 border-l-rose-500">
+                        <p className="text-sm font-bold text-slate-900 mb-2">System Insight:</p>
+                        <p className="text-slate-600 leading-relaxed font-medium italic">"Analysis of your recent study patterns suggests completing the 'Mathematics Quiz' task would yield a 15% efficiency bonus this week."</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="academic-card p-10 !bg-white">
+                    <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-10">Critical Priority Tasks</h2>
+                    <div className="space-y-4">
+                      {tasks.filter(t => t.status === 'pending').slice(0, 3).map((task, i) => (
+                        <div key={i} className="group p-6 rounded-3xl bg-slate-50 border border-slate-100 hover:border-rose-200 transition-all flex items-center justify-between gap-6">
+                          <div className="flex items-center gap-6">
+                            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shrink-0 group-hover:rotate-6 transition-transform">
+                              <Target className="w-6 h-6 text-rose-500" />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-slate-900">{task.title}</h3>
+                              <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mt-1">{task.deadline}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-6 shrink-0">
+                            <div className="text-right">
+                              <p className="text-xl font-serif font-bold text-rose-600">+{task.points}</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Merit Pts</p>
+                            </div>
+                            <button className="px-6 py-2.5 bg-rose-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-100">Initialize</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-4">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-4 rounded-full transition-all"
-                    style={{ width: '70%' }}
-                  ></div>
+
+                <div className="lg:col-span-4 space-y-8">
+                  <div className="academic-card p-8 !bg-rose-600 text-white group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10">
+                      <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6">
+                        <Crown className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-2xl font-serif font-bold mb-2">Dean's List Status</h3>
+                      <p className="text-rose-100 text-sm leading-relaxed mb-6">You are eligible for elite tier rewards this semester. Check the store for exclusive vouchers.</p>
+                      <button className="w-full py-3 bg-white text-rose-700 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-rose-50 transition-colors shadow-xl">View Privileges</button>
+                    </div>
+                  </div>
+
+                  <div className="academic-card p-8 !bg-white">
+                    <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Recent Milestones</h2>
+                    <div className="space-y-6">
+                      {[
+                        { icon: '🎯', name: 'Task Master', date: '2d ago' },
+                        { icon: '🔥', name: '7-Day Streak', date: 'Today' },
+                        { icon: '📚', name: 'Quiz Pro', date: '3d ago' },
+                      ].map((m, i) => (
+                        <div key={i} className="flex items-center gap-4">
+                          <div className="text-2xl w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">{m.icon}</div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">{m.name}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{m.date}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mt-2">
-                Complete more tasks to level up and unlock exclusive rewards!
-              </p>
-            </div>
+            </motion.div>
+          )}
 
-            {/* Today's Tasks */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5 text-green-600" />
-                Today's Priority Tasks
-              </h2>
-              <div className="space-y-3">
-                {tasks.filter(t => t.status === 'pending').slice(0, 3).map((task) => (
-                  <div key={task.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900">{task.title}</h3>
-                      <span className="text-sm px-3 py-1 bg-yellow-100 text-yellow-700 rounded font-semibold">
-                        +{task.points} pts
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">{task.description}</p>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <Clock className="w-4 h-4" />
-                        {task.deadline}
+          {activeTab === 'tasks' && (
+            <motion.div
+              key="tasks"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-10"
+            >
+              <div className="academic-card p-10 !bg-white">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-serif font-bold text-slate-900 flex items-center gap-3">
+                      <Target className="w-8 h-8 text-rose-600" />
+                      Active Merit Tasks
+                    </h2>
+                    <p className="text-slate-500 font-medium text-lg">Earn points by completing academic and community challenges.</p>
+                  </div>
+                  
+                  <div className="flex p-1 bg-slate-100 rounded-2xl border border-slate-200 w-fit">
+                    <button className="px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all bg-white text-rose-600 shadow-sm">All</button>
+                    <button className="px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all text-slate-400">Academic</button>
+                    <button className="px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all text-slate-400">Community</button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {tasks.map((task, i) => (
+                    <div key={i} className={`group p-8 rounded-[2.5rem] bg-slate-50 border-2 transition-all ${
+                      task.status === 'completed' ? 'border-emerald-200 opacity-75' : 
+                      task.status === 'overdue' ? 'border-rose-200' : 'border-slate-100 hover:border-rose-300'
+                    }`}>
+                      <div className="flex justify-between items-start mb-6">
+                        <div className={`w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center group-hover:scale-110 transition-transform ${
+                          task.status === 'completed' ? 'text-emerald-500' : 'text-rose-500'
+                        }`}>
+                          {task.status === 'completed' ? <CheckCircle className="w-7 h-7" /> : <Zap className="w-7 h-7" />}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-serif font-bold text-slate-900">+{task.points}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Points</p>
+                        </div>
                       </div>
-                      <button className="px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
-                        Complete
+                      
+                      <div className="space-y-2 mb-8">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xl font-bold text-slate-900 group-hover:text-rose-600 transition-colors">{task.title}</h3>
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                            task.status === 'pending' ? 'bg-indigo-50 text-indigo-600' :
+                            task.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                          }`}>{task.status}</span>
+                        </div>
+                        <p className="text-sm font-medium text-slate-500 leading-relaxed">{task.description}</p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-6 border-t border-slate-200/60">
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <Clock className="w-4 h-4" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">{task.deadline}</span>
+                        </div>
+                        <button className={`text-xs font-bold hover:underline flex items-center gap-1.5 ${
+                          task.status === 'completed' ? 'text-emerald-600' : 'text-rose-600'
+                        }`}>
+                          {task.status === 'completed' ? 'View Proof' : 'Execute Task'} <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'leaderboard' && (
+            <motion.div
+              key="leaderboard"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="max-w-4xl mx-auto space-y-10"
+            >
+              <div className="academic-card p-10 !bg-white">
+                <div className="text-center space-y-4 mb-16">
+                  <div className="w-20 h-20 rounded-3xl bg-amber-50 flex items-center justify-center mx-auto border border-amber-100 shadow-lg shadow-amber-100">
+                    <Trophy className="w-10 h-10 text-amber-600" />
+                  </div>
+                  <h2 className="text-4xl font-serif font-bold text-slate-900">Elite Scholarship <span className="text-amber-600">Ladder</span></h2>
+                  <p className="text-slate-500 font-medium text-lg">Top scholars eligible for the 2025 Presidential Excellence Grant.</p>
+                </div>
+
+                <div className="space-y-4">
+                  {leaderboard.map((entry, i) => (
+                    <div key={i} className={`group p-6 rounded-[2rem] border-2 transition-all flex items-center gap-6 ${
+                      entry.name === 'You' ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-50 border-slate-100 hover:border-amber-200'
+                    }`}>
+                      <div className={`w-12 text-3xl font-serif font-bold text-center ${
+                        entry.rank === 1 ? 'text-amber-500' : entry.rank === 2 ? 'text-slate-400' : entry.rank === 3 ? 'text-orange-400' : 'text-slate-300'
+                      }`}>
+                        {entry.rank}
+                      </div>
+                      <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                        {entry.badge}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                          {entry.name}
+                          {entry.name === 'You' && <span className="px-3 py-1 rounded-full bg-indigo-600 text-white text-[8px] font-bold uppercase tracking-widest">Profile Verified</span>}
+                        </h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Tier: Scholar Level {entry.level}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-serif font-bold text-slate-900">{entry.points}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lifetime Merit</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'rewards' && (
+            <motion.div
+              key="rewards"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-10"
+            >
+              <div className="academic-card p-10 !bg-white">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-serif font-bold text-slate-900 flex items-center gap-3">
+                      <Gift className="w-8 h-8 text-rose-600" />
+                      Merit Store
+                    </h2>
+                    <p className="text-slate-500 font-medium text-lg">Redeem your hard-earned points for campus privileges.</p>
+                  </div>
+                  <div className="px-8 py-4 bg-slate-900 text-white rounded-3xl flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                      <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Available Balance</p>
+                      <p className="text-2xl font-serif font-bold">{userStats.totalPoints} Merit</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {rewards.map((reward, i) => (
+                    <div key={i} className={`group p-8 rounded-[2.5rem] bg-slate-50 border-2 transition-all flex flex-col justify-between ${
+                      !reward.available || reward.cost > userStats.totalPoints ? 'opacity-60 grayscale border-slate-100' : 'border-slate-100 hover:border-rose-300 shadow-sm'
+                    }`}>
+                      <div>
+                        <div className="flex justify-between items-start mb-8">
+                          <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <reward.icon className="w-7 h-7 text-rose-500" />
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-serif font-bold text-slate-900">{reward.cost}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Points</p>
+                          </div>
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-rose-600 transition-colors">{reward.name}</h3>
+                        <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-8">Campus Exclusive</p>
+                      </div>
+
+                      <button 
+                        disabled={!reward.available || reward.cost > userStats.totalPoints}
+                        className={`w-full py-4 rounded-[1.5rem] font-bold text-xs uppercase tracking-widest transition-all ${
+                          !reward.available ? 'bg-slate-200 text-slate-400 cursor-not-allowed' :
+                          reward.cost > userStats.totalPoints ? 'bg-slate-100 text-slate-400 border border-slate-200' :
+                          'bg-rose-600 text-white shadow-lg shadow-rose-100 hover:bg-rose-700 hover:-translate-y-1'
+                        }`}
+                      >
+                        {!reward.available ? 'Out of Stock' : reward.cost > userStats.totalPoints ? 'Insufficient Balance' : 'Initialize Redemption'}
                       </button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Achievements */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-purple-600" />
-                Recent Achievements
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { icon: '🎯', name: 'Task Master', desc: 'Complete 10 tasks', date: '2 days ago' },
-                  { icon: '🔥', name: '7-Day Streak', desc: 'Active for 7 days', date: 'Today' },
-                  { icon: '📚', name: 'Quiz Pro', desc: 'Score 90%+ on 5 quizzes', date: '3 days ago' },
-                ].map((achievement, idx) => (
-                  <div key={idx} className="border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-shadow">
-                    <div className="text-4xl mb-2">{achievement.icon}</div>
-                    <h4 className="font-bold text-gray-900 mb-1">{achievement.name}</h4>
-                    <p className="text-xs text-gray-600 mb-2">{achievement.desc}</p>
-                    <span className="text-xs text-gray-500">{achievement.date}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tasks Tab */}
-        {activeTab === 'tasks' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">All Tasks</h2>
-              
-              <div className="space-y-4">
-                {tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className={`border rounded-lg p-5 ${
-                      task.status === 'completed' ? 'bg-green-50 border-green-200' :
-                      task.status === 'overdue' ? 'bg-red-50 border-red-200' :
-                      'border-gray-200 hover:shadow-md transition-shadow'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-bold text-gray-900">{task.title}</h3>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            task.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            task.status === 'overdue' ? 'bg-red-100 text-red-700' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
-                            {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-                          </span>
-                          <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                            {task.category}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                      </div>
-                      <div className="text-right ml-4">
-                        <div className="text-2xl font-bold text-yellow-600">+{task.points}</div>
-                        <div className="text-xs text-gray-500">points</div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 text-sm">
-                      <div>
-                        <div className="text-gray-500 mb-1">Deadline</div>
-                        <div className="flex items-center gap-1 text-gray-900">
-                          <Clock className="w-4 h-4" />
-                          {task.deadline}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 mb-1">Reward</div>
-                        <div className="text-green-600 font-semibold">{task.reward}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 mb-1">Penalty</div>
-                        <div className="text-red-600 font-semibold">{task.penalty}</div>
-                      </div>
-                    </div>
-
-                    {task.status === 'pending' && (
-                      <div className="flex gap-2">
-                        <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
-                          Mark as Complete
-                        </button>
-                        <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                          View Details
-                        </button>
-                      </div>
-                    )}
-
-                    {task.status === 'completed' && (
-                      <div className="flex items-center gap-2 text-green-700">
-                        <CheckCircle className="w-5 h-5" />
-                        <span className="font-semibold">Task completed! Points awarded.</span>
-                      </div>
-                    )}
-
-                    {task.status === 'overdue' && (
-                      <div className="p-3 bg-red-100 border border-red-300 rounded text-sm text-red-800">
-                        ⚠️ This task is overdue. Penalty may apply.
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Leaderboard Tab */}
-        {activeTab === 'leaderboard' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-600" />
-                Top Students This Semester
-              </h2>
-
-              <div className="space-y-2">
-                {leaderboard.map((entry) => (
-                  <div
-                    key={entry.rank}
-                    className={`flex items-center gap-4 p-4 rounded-lg ${
-                      entry.name === 'You'
-                        ? 'bg-blue-50 border-2 border-blue-300'
-                        : entry.rank <= 3
-                        ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200'
-                        : 'bg-gray-50 border border-gray-200'
-                    }`}
-                  >
-                    <div className={`text-2xl font-bold ${
-                      entry.rank === 1 ? 'text-yellow-600' :
-                      entry.rank === 2 ? 'text-gray-500' :
-                      entry.rank === 3 ? 'text-orange-600' :
-                      'text-gray-400'
-                    }`}>
-                      #{entry.rank}
-                    </div>
-
-                    <div className="text-3xl">{entry.badge}</div>
-
-                    <div className="flex-1">
-                      <h3 className={`font-bold ${
-                        entry.name === 'You' ? 'text-blue-900' : 'text-gray-900'
-                      }`}>
-                        {entry.name}
-                        {entry.name === 'You' && (
-                          <span className="ml-2 text-sm px-2 py-0.5 bg-blue-200 text-blue-800 rounded">
-                            You
-                          </span>
-                        )}
-                      </h3>
-                      <div className="text-sm text-gray-600">Level {entry.level}</div>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-yellow-600">{entry.points}</div>
-                      <div className="text-xs text-gray-500">points</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
-              <h3 className="font-bold text-purple-900 mb-2 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Climb the Ranks!
-              </h3>
-              <p className="text-sm text-purple-800 mb-3">
-                You're just 70 points away from rank #4! Complete more tasks to move up.
-              </p>
-              <ul className="space-y-1 text-sm text-purple-800">
-                <li>• Complete 2 more assignments to gain 150 points</li>
-                <li>• Return lost items to earn community points</li>
-                <li>• Maintain your 7-day streak for bonus points</li>
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {/* Rewards Store Tab */}
-        {activeTab === 'rewards' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Gift className="w-5 h-5 text-purple-600" />
-                  Rewards Store
-                </h2>
-                <div className="text-right">
-                  <div className="text-sm text-gray-600">Your Balance</div>
-                  <div className="text-2xl font-bold text-yellow-600">{userStats.totalPoints} pts</div>
+                  ))}
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {rewards.map((reward, idx) => (
-                  <div
-                    key={idx}
-                    className={`border rounded-lg p-5 ${
-                      !reward.available || reward.cost > userStats.totalPoints
-                        ? 'opacity-60 border-gray-200'
-                        : 'border-purple-200 hover:shadow-md transition-shadow'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 mb-1">{reward.name}</h3>
-                        {!reward.available && (
-                          <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
-                            Coming Soon
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-right ml-4">
-                        <div className="text-xl font-bold text-purple-600">{reward.cost}</div>
-                        <div className="text-xs text-gray-500">points</div>
-                      </div>
-                    </div>
-
-                    <button
-                      disabled={!reward.available || reward.cost > userStats.totalPoints}
-                      className={`w-full py-2 rounded-lg font-medium transition-colors ${
-                        reward.available && reward.cost <= userStats.totalPoints
-                          ? 'bg-purple-600 text-white hover:bg-purple-700'
-                          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {!reward.available ? 'Coming Soon' :
-                       reward.cost > userStats.totalPoints ? 'Not Enough Points' :
-                       'Redeem'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-              <h3 className="font-bold text-yellow-900 mb-2 flex items-center gap-2">
-                <Star className="w-5 h-5" />
-                How to Earn More Points
-              </h3>
-              <ul className="space-y-2 text-sm text-yellow-800">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span><strong>Academic Tasks:</strong> Complete assignments early (+75-100 pts)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span><strong>Quizzes:</strong> Score 80%+ on practice quizzes (+50 pts)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span><strong>Community:</strong> Return lost items, join study groups (+25-50 pts)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span><strong>Daily Streak:</strong> Log in and complete tasks daily (+10 pts/day)</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Background Decorations */}
+      <div className="absolute top-[10%] -left-[5%] w-[30%] h-[40%] bg-rose-200/20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[10%] -right-[5%] w-[30%] h-[40%] bg-indigo-200/20 blur-[120px] rounded-full pointer-events-none" />
     </div>
   );
 }
