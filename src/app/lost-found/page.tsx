@@ -32,7 +32,8 @@ import {
   Filter,
   Activity,
   Zap,
-  LayoutDashboard
+  LayoutDashboard,
+  Upload
 } from 'lucide-react';
 
 export default function LostFoundPage() {
@@ -43,11 +44,20 @@ export default function LostFoundPage() {
   const [showMessaging, setShowMessaging] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [messageText, setMessageText] = useState('');
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([
+    { id: 1, text: 'Hi, I found this item. Is it yours?', sender: 'owner', time: '10:23 AM' },
+    { id: 2, text: 'Yes! I lost it yesterday. Can we verify ownership?', sender: 'me', time: '10:25 AM' },
+    { id: 3, text: 'Of course! Please use the verify button to answer security questions.', sender: 'owner', time: '10:26 AM' },
+  ]);
   
   // Verification System
   const [showVerification, setShowVerification] = useState(false);
-  const [verificationAnswers, setVerificationAnswers] = useState<any>({});
+  const [verificationAnswers, setVerificationAnswers] = useState<any>({
+    brand: '',
+    uniqueMarks: '',
+    contents: '',
+  });
+  const [verificationProof, setVerificationProof] = useState<File[]>([]);
   
   // Status Tracking
   const [showStatusTimeline, setShowStatusTimeline] = useState(false);
@@ -312,9 +322,9 @@ export default function LostFoundPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {[
-                    { title: 'Space Grey MacBook', owner: 'Amine R.', loc: 'Library 2nd Floor', date: 'Oct 20, 2024', status: 'Active Match', img: '💻', color: 'border-indigo-400' },
-                    { title: 'Sony Headphones', owner: 'Ines T.', loc: 'Cafeteria', date: 'Oct 19, 2024', status: 'Searching', img: '🎧', color: 'border-slate-200' },
-                    { title: 'Scientific Calculator', owner: 'Karim B.', loc: 'Amphi B', date: 'Oct 18, 2024', status: 'Searching', img: '🔢', color: 'border-slate-200' },
+                    { title: 'Black HP Laptop', desc: 'HP EliteBook with university sticker', owner: 'Amine R.', loc: 'Library 3rd Floor', date: 'Dec 15, 2025', status: 'Active Match', img: '💻', color: 'border-indigo-400' },
+                    { title: 'Sony Headphones', desc: 'WH-1000XM4 Noise Cancelling', owner: 'Ines T.', loc: 'Cafeteria', date: 'Oct 19, 2024', status: 'Searching', img: '🎧', color: 'border-slate-200' },
+                    { title: 'Scientific Calculator', desc: 'Casio FX-991EX with scratches', owner: 'Karim B.', loc: 'Amphi B', date: 'Oct 18, 2024', status: 'Searching', img: '🔢', color: 'border-slate-200' },
                   ].map((item, i) => (
                     <div key={i} className={`group academic-card p-6 !bg-slate-50 !border-2 ${item.color} hover:shadow-xl transition-all`}>
                       <div className="h-40 rounded-2xl bg-white border border-slate-100 mb-6 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform duration-500 relative overflow-hidden">
@@ -324,9 +334,12 @@ export default function LostFoundPage() {
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-lg">{item.title}</h3>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Owner: {item.owner}</p>
+                          <p className="text-xs text-slate-500 mt-1">{item.desc}</p>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Owner: {item.owner}</p>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${item.status === 'Active Match' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                        <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest shrink-0 ${
+                          item.status === 'Active Match' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}>
                           {item.status}
                         </span>
                       </div>
@@ -340,7 +353,28 @@ export default function LostFoundPage() {
                           {item.date}
                         </div>
                       </div>
-                      <button className="w-full py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all">View Details</button>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setShowMessaging(true);
+                          }}
+                          className="flex-1 py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all flex items-center justify-center gap-2"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          Message
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setShowVerification(true);
+                          }}
+                          className="flex-1 py-3 bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Shield className="w-4 h-4" />
+                          Verify
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -499,6 +533,341 @@ export default function LostFoundPage() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Verification Modal */}
+      <AnimatePresence>
+        {showVerification && selectedItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-6"
+            onClick={() => setShowVerification(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="academic-card p-10 !bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-start justify-between mb-8">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-serif font-bold text-slate-900">Verify Ownership</h2>
+                      <p className="text-sm text-slate-500 font-medium">Prove this item belongs to you</p>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowVerification(false)}
+                  className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mb-8 p-6 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl">{selectedItem.img}</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-slate-900 text-lg mb-1">{selectedItem.title}</h3>
+                    <p className="text-sm text-slate-600 mb-3">{selectedItem.desc}</p>
+                    <div className="flex flex-wrap gap-3 text-xs">
+                      <div className="flex items-center gap-1.5 text-slate-500">
+                        <MapPin className="w-3.5 h-3.5" />
+                        {selectedItem.loc}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-500">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {selectedItem.date}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Security Questions</h3>
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-700">
+                        1. What is the brand or model of this item? <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={verificationAnswers.brand}
+                        onChange={(e) => setVerificationAnswers({ ...verificationAnswers, brand: e.target.value })}
+                        placeholder="e.g., HP EliteBook, Sony WH-1000XM4"
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 outline-none font-medium text-slate-700"
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-700">
+                        2. Are there any unique marks or distinguishing features? <span className="text-rose-500">*</span>
+                      </label>
+                      <textarea
+                        value={verificationAnswers.uniqueMarks}
+                        onChange={(e) => setVerificationAnswers({ ...verificationAnswers, uniqueMarks: e.target.value })}
+                        placeholder="e.g., Scratch on the back, sticker, custom color"
+                        rows={3}
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 outline-none font-medium text-slate-700 resize-none"
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-700">
+                        3. What was inside or attached to the item? <span className="text-rose-500">*</span>
+                      </label>
+                      <textarea
+                        value={verificationAnswers.contents}
+                        onChange={(e) => setVerificationAnswers({ ...verificationAnswers, contents: e.target.value })}
+                        placeholder="e.g., Books, charger, keychain"
+                        rows={3}
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:border-emerald-500/30 focus:ring-4 focus:ring-emerald-500/5 outline-none font-medium text-slate-700 resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Additional Proof (Optional)</h3>
+                  <div className="space-y-4">
+                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <Camera className="w-4 h-4 text-emerald-600" />
+                      Upload Photos or Receipt (Multiple files supported)
+                    </label>
+                    <div className="group border-2 border-dashed border-emerald-200 rounded-2xl p-8 text-center hover:border-emerald-400 hover:bg-emerald-50/30 transition-all cursor-pointer relative bg-emerald-50/20">
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        multiple
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            setVerificationProof(Array.from(e.target.files));
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                      <div className="w-16 h-16 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-500 border-2 border-emerald-300">
+                        <Upload className="w-8 h-8 text-emerald-600" />
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-1">
+                        {verificationProof.length > 0 ? `${verificationProof.length} file(s) selected` : 'Click or drag to upload'}
+                      </h4>
+                      <p className="text-xs text-slate-500 mb-3">PNG, JPG, or PDF (Max 5MB each)</p>
+                      <div className="flex items-center justify-center gap-2 text-emerald-600">
+                        <Camera className="w-4 h-4" />
+                        <span className="text-xs font-bold uppercase tracking-widest">Add Proof Photos</span>
+                      </div>
+                    </div>
+
+                    {/* Photo Previews */}
+                    {verificationProof.length > 0 && (
+                      <div className="grid grid-cols-3 gap-3">
+                        {verificationProof.map((file, idx) => (
+                          <div key={idx} className="relative group">
+                            <div className="aspect-square rounded-xl bg-slate-100 border border-slate-200 overflow-hidden">
+                              <div className="w-full h-full flex items-center justify-center">
+                                {file.type.startsWith('image/') ? (
+                                  <img
+                                    src={URL.createObjectURL(file)}
+                                    alt={file.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <FileText className="w-8 h-8 text-slate-400" />
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setVerificationProof(verificationProof.filter((_, i) => i !== idx));
+                              }}
+                              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                            <p className="text-[10px] text-slate-500 text-center mt-1 truncate">{file.name}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-10">
+                <button
+                  onClick={() => {
+                    setShowVerification(false);
+                    setVerificationAnswers({ brand: '', uniqueMarks: '', contents: '' });
+                    setVerificationProof([]);
+                  }}
+                  className="flex-1 py-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-700 font-bold text-sm uppercase tracking-widest hover:bg-slate-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    alert(`Verification submitted! The owner will review your answers.${verificationProof.length > 0 ? ` ${verificationProof.length} proof photo(s) attached.` : ''}`);
+                    setShowVerification(false);
+                    setVerificationAnswers({ brand: '', uniqueMarks: '', contents: '' });
+                    setVerificationProof([]);
+                  }}
+                  disabled={!verificationAnswers.brand || !verificationAnswers.uniqueMarks || !verificationAnswers.contents}
+                  className="flex-1 py-4 rounded-2xl bg-emerald-600 text-white font-bold text-sm uppercase tracking-widest hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-emerald-200"
+                >
+                  Submit Verification
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* WhatsApp-Style Messaging Modal */}
+      <AnimatePresence>
+        {showMessaging && selectedItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-6"
+            onClick={() => setShowMessaging(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-[2rem] max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl"
+            >
+              {/* WhatsApp-style Header */}
+              <div className="bg-indigo-600 text-white p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl">
+                    {selectedItem.img}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">{selectedItem.owner}</h3>
+                    <p className="text-xs text-indigo-100">{selectedItem.title}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowMessaging(false)}
+                  className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Item Info Banner */}
+              <div className="bg-amber-50 border-b border-amber-100 p-4">
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <Package className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-amber-900">{selectedItem.desc}</p>
+                    <div className="flex items-center gap-3 text-xs text-amber-700 mt-1">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {selectedItem.loc}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {selectedItem.date}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chat Messages Area */}
+              <div className="flex-1 overflow-y-auto p-6 bg-slate-50" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e2e8f0' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}>
+                <div className="space-y-4 max-w-3xl mx-auto">
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`max-w-[75%] ${
+                        msg.sender === 'me'
+                          ? 'bg-indigo-600 text-white rounded-[1.25rem] rounded-br-md'
+                          : 'bg-white text-slate-900 rounded-[1.25rem] rounded-bl-md shadow-sm border border-slate-100'
+                      } px-4 py-3`}>
+                        <p className="text-sm leading-relaxed">{msg.text}</p>
+                        <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${
+                          msg.sender === 'me' ? 'text-indigo-200' : 'text-slate-400'
+                        }`}>
+                          <span>{msg.time}</span>
+                          {msg.sender === 'me' && (
+                            <CheckCircle className="w-3 h-3" />
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Message Input Area */}
+              <div className="bg-white border-t border-slate-200 p-4">
+                <div className="flex items-end gap-3">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && messageText.trim()) {
+                          setMessages([...messages, {
+                            id: messages.length + 1,
+                            text: messageText,
+                            sender: 'me',
+                            time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                          }]);
+                          setMessageText('');
+                        }
+                      }}
+                      placeholder="Type a message..."
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-full outline-none focus:border-indigo-500/30 focus:ring-4 focus:ring-indigo-500/5 focus:bg-white transition-all text-sm"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (messageText.trim()) {
+                        setMessages([...messages, {
+                          id: messages.length + 1,
+                          text: messageText,
+                          sender: 'me',
+                          time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                        }]);
+                        setMessageText('');
+                      }
+                    }}
+                    disabled={!messageText.trim()}
+                    className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-200"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 text-center mt-2 uppercase tracking-widest">Messages are secure and private</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Background Decorations */}
       <div className="absolute top-[10%] -left-[5%] w-[30%] h-[40%] bg-amber-200/20 blur-[120px] rounded-full pointer-events-none" />

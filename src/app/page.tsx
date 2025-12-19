@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import Navbar from './components/Navbar';
 import { 
   BookOpen, FileSearch, Package, Bell, Award, Newspaper, 
   LogOut, User, TrendingUp, Calendar, Clock, ArrowRight, 
@@ -104,48 +105,10 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden relative">
       <div className="ivy-mesh" />
       <div className="grain" />
-      
-      {/* Navigation - Sidebar */}
-      <aside className="fixed left-0 top-0 h-screen w-24 hidden xl:flex flex-col items-center py-10 bg-white border-r border-slate-200 z-50 shadow-sm">
-        <motion.div 
-          whileHover={{ scale: 1.05 }}
-          className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center mb-12 shadow-lg shadow-indigo-200"
-        >
-          <GraduationCap className="w-6 h-6 text-white" />
-        </motion.div>
-        
-        <nav className="flex flex-col gap-8 flex-1">
-          {[
-            { icon: LayoutDashboard, active: true },
-            { icon: BookText },
-            { icon: CalendarDays },
-            { icon: Bookmark },
-            { icon: Settings }
-          ].map((item, i) => (
-            <motion.button
-              key={i}
-              whileHover={{ scale: 1.1 }}
-              className={`p-3.5 rounded-2xl transition-all relative ${
-                item.active ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              {item.active && (
-                <motion.div layoutId="activeNav" className="absolute -left-[1px] top-1/4 bottom-1/4 w-1 bg-indigo-600 rounded-full" />
-              )}
-            </motion.button>
-          ))}
-        </nav>
 
-        <button 
-          onClick={handleLogout}
-          className="p-3.5 rounded-2xl text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all mb-4"
-        >
-          <LogOut className="w-5 h-5" />
-        </button>
-      </aside>
+      <Navbar />
 
-      <main className="relative z-10 xl:ml-24 min-h-screen p-6 md:p-10 lg:p-14 max-w-[1500px] mx-auto">
+      <main className="relative z-10 min-h-screen p-6 md:p-10 lg:p-14 max-w-[1500px] mx-auto">
         {/* Modern Header */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <div className="space-y-2">
@@ -337,15 +300,6 @@ export default function HomePage() {
           ))}
         </motion.div>
       </main>
-
-      {/* Mobile Navigation */}
-      <nav className="xl:hidden fixed bottom-6 left-6 right-6 h-16 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl flex items-center justify-around z-50 shadow-lg">
-        {[LayoutDashboard, BookText, CalendarDays, User].map((Icon, i) => (
-          <button key={i} className={`p-2 transition-all ${i === 0 ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>
-            <Icon className="w-6 h-6" />
-          </button>
-        ))}
-      </nav>
     </div>
   );
 }
