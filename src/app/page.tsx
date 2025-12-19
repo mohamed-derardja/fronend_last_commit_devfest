@@ -13,8 +13,6 @@ import {
   Cpu, Activity, GraduationCap, Library, BookText,
   Timer, CalendarDays, Bookmark
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 export default function HomePage() {
   const router = useRouter();
@@ -251,7 +249,7 @@ export default function HomePage() {
                     <p className="text-5xl font-serif font-semibold text-slate-900">3.82</p>
                   </div>
                   <div className="text-right">
-                    <Badge variant="outline" className="border-indigo-100 text-indigo-600 bg-indigo-50 font-bold tracking-widest text-[10px]">DEAN'S LIST</Badge>
+                    <span className="px-3 py-1 rounded-full border border-indigo-100 text-indigo-600 bg-indigo-50 font-bold tracking-widest text-[10px]">DEAN'S LIST</span>
                   </div>
                 </div>
 
