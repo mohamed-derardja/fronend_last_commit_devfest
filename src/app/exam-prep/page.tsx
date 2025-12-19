@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import { examPrepAPI } from '@/lib/api';
 import { 
   BookOpen, 
   Upload, 
@@ -45,6 +46,13 @@ export default function ExamPrepPage() {
   const [quizInputMethod, setQuizInputMethod] = useState<'text' | 'upload'>('text');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [textContent, setTextContent] = useState('');
+  
+  // Quiz Generation States
+  const [quizSubject, setQuizSubject] = useState('');
+  const [quizDifficulty, setQuizDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+  const [quizError, setQuizError] = useState('');
 
   // PDF Summarizer States
   const [summaryInputMethod, setSummaryInputMethod] = useState<'text' | 'upload'>('text');
@@ -56,6 +64,8 @@ export default function ExamPrepPage() {
     keyPoints: string[];
     actionItems: string[];
   } | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summaryError, setSummaryError] = useState('');
 
   // Resources States
   const [resourceSearchQuery, setResourceSearchQuery] = useState('');
@@ -151,6 +161,71 @@ export default function ExamPrepPage() {
         'Schedule a 25-minute review tomorrow'
       ]
     };
+  };
+
+  // API Functions
+  const handleGenerateQuiz = async () => {
+    if (!quizSubject && !textContent) {
+      setQuizError('Please enter a subject or topic');
+      return;
+    }
+
+    setIsGeneratingQuiz(true);
+    setQuizError('');
+    
+    try {
+      const response = await examPrepAPI.generateQuiz({
+        subject: quizSubject || 'General',
+        topic: textContent,
+        difficulty: quizDifficulty,
+        count: 5
+      });
+      
+      setQuizQuestions(response.questions || []);
+    } catch (err: any) {
+      setQuizError(err.message || 'Failed to generate quiz. Please try again.');
+      console.error('Quiz generation error:', err);
+    } finally {
+      setIsGeneratingQuiz(false);
+    }
+  };
+
+  const handleSummarizeText = async () => {
+    if (!summaryText) {
+      setSummaryError('Please enter some text to summarize');
+      return;
+    }
+
+    setIsSummarizing(true);
+    setSummaryError('');
+    
+    try {
+      const response = await examPrepAPI.summarizeText({ text: summaryText });
+      
+      if (response.summary) {
+        setSummaryResult({
+          title: response.summary.title || 'AI Summary',
+          overview: response.summary.overview || '',
+          keyPoints: response.summary.keyPoints || [],
+          actionItems: response.summary.actionItems || [
+            'Review key points and create flashcards',
+            'Practice with sample questions',
+            'Schedule follow-up study session'
+          ]
+        });
+      }
+    } catch (err: any) {
+      setSummaryError(err.message || 'Failed to generate summary. Please try again.');
+      console.error('Summarization error:', err);
+      
+      // Fallback to local summary
+      const localSummary = generateQuickSummary(summaryText);
+      if (localSummary) {
+        setSummaryResult(localSummary);
+      }
+    } finally {
+      setIsSummarizing(false);
+    }
   };
 
   type StudyTask = {
@@ -664,26 +739,63 @@ export default function ExamPrepPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Subject Domain</label>
-                      <select className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-indigo-500/30 font-bold text-slate-700">
-                        <option>Advanced Mathematics</option>
-                        <option>Theoretical Physics</option>
-                        <option>Computer Science</option>
-                      </select>
+                      <input
+                        type="text"
+                        value={quizSubject}
+                        onChange={(e) => setQuizSubject(e.target.value)}
+                        placeholder="e.g., Mathematics, Physics"
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-indigo-500/30 font-bold text-slate-700"
+                      />
                     </div>
                     <div className="space-y-3">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Intensity Level</label>
-                      <select className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-indigo-500/30 font-bold text-slate-700">
-                        <option>Beginner (Conceptual)</option>
-                        <option>Intermediate (Applied)</option>
-                        <option>Advanced (Rigorous)</option>
+                      <select 
+                        value={quizDifficulty}
+                        onChange={(e) => setQuizDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-indigo-500/30 font-bold text-slate-700"
+                      >
+                        <option value="easy">Beginner (Conceptual)</option>
+                        <option value="medium">Intermediate (Applied)</option>
+                        <option value="hard">Advanced (Rigorous)</option>
                       </select>
                     </div>
                   </div>
 
-                  <button className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-bold text-lg shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                  {quizError && (
+                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
+                      <p className="text-sm font-medium text-rose-600">{quizError}</p>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={handleGenerateQuiz}
+                    disabled={isGeneratingQuiz}
+                    className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-bold text-lg shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     <Sparkles className="w-6 h-6" />
-                    Initialize AI Assessment
+                    {isGeneratingQuiz ? 'Generating Quiz...' : 'Initialize AI Assessment'}
                   </button>
+
+                  {quizQuestions.length > 0 && (
+                    <div className="academic-card p-8 !bg-slate-50 border border-slate-100 space-y-6">
+                      <h3 className="text-xl font-serif font-bold text-slate-900 mb-4">Generated Quiz</h3>
+                      {quizQuestions.map((q, i) => (
+                        <div key={i} className="p-6 bg-white rounded-2xl border border-slate-200">
+                          <p className="font-bold text-slate-900 mb-4">{i + 1}. {q.question}</p>
+                          <div className="space-y-2">
+                            {q.options?.map((opt: string, j: number) => (
+                              <div key={j} className="p-3 rounded-xl bg-slate-50 text-sm">
+                                {String.fromCharCode(65 + j)}. {opt}
+                              </div>
+                            ))}
+                          </div>
+                          {q.correctAnswer && (
+                            <p className="mt-3 text-sm text-emerald-600 font-medium">Correct: {q.correctAnswer}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -754,15 +866,19 @@ export default function ExamPrepPage() {
                     </div>
                   )}
 
+                  {summaryError && (
+                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
+                      <p className="text-sm font-medium text-rose-600">{summaryError}</p>
+                    </div>
+                  )}
+
                   <button
-                    onClick={() => {
-                      const result = generateQuickSummary(summaryText);
-                      setSummaryResult(result);
-                    }}
-                    className="w-full py-6 bg-emerald-600 text-white rounded-[2rem] font-bold text-lg shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3"
+                    onClick={handleSummarizeText}
+                    disabled={isSummarizing}
+                    className="w-full py-6 bg-emerald-600 text-white rounded-[2rem] font-bold text-lg shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Sparkles className="w-6 h-6" />
-                    Generate Summary
+                    {isSummarizing ? 'Generating Summary...' : 'Generate Summary'}
                   </button>
 
                   {summaryResult && (

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { authAPI } from '@/lib/api';
 import { 
   GraduationCap, 
   ArrowRight, 
@@ -21,13 +22,50 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [name, setName] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      localStorage.setItem('userRole', selectedRole || 'student');
-      localStorage.setItem('userEmail', email);
-      router.push('/');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      if (isRegisterMode) {
+        // Register new user
+        const response = await authAPI.register({
+          name: name || email.split('@')[0],
+          email,
+          password,
+          role: selectedRole || 'student'
+        });
+        
+        if (response.token) {
+          localStorage.setItem('authToken', response.token);
+          localStorage.setItem('userRole', selectedRole || 'student');
+          localStorage.setItem('userEmail', email);
+          localStorage.setItem('userName', response.user?.name || name);
+          router.push('/');
+        }
+      } else {
+        // Login existing user
+        const response = await authAPI.login({ email, password });
+        
+        if (response.token) {
+          localStorage.setItem('authToken', response.token);
+          localStorage.setItem('userRole', response.user?.role || selectedRole || 'student');
+          localStorage.setItem('userEmail', email);
+          localStorage.setItem('userName', response.user?.name || email.split('@')[0]);
+          router.push('/');
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed. Please try again.');
+      console.error('Auth error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -135,6 +173,26 @@ export default function LoginPage() {
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-8">
+                  {error && (
+                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
+                      <p className="text-sm font-medium text-rose-600">{error}</p>
+                    </div>
+                  )}
+                  
+                  {isRegisterMode && (
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Name</label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g., Ahmed Mansouri"
+                        required={isRegisterMode}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-indigo-500 transition-all font-medium"
+                      />
+                    </div>
+                  )}
+                  
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identifier (Email)</label>
                     <input
@@ -170,10 +228,24 @@ export default function LoginPage() {
 
                   <button
                     type="submit"
-                    className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all transform hover:-translate-y-1"
+                    disabled={isLoading}
+                    className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-xl hover:bg-slate-800 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Authenticate Identity
+                    {isLoading ? 'Processing...' : isRegisterMode ? 'Create Account' : 'Authenticate Identity'}
                   </button>
+                  
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRegisterMode(!isRegisterMode);
+                        setError('');
+                      }}
+                      className="text-sm font-medium text-indigo-600 hover:underline"
+                    >
+                      {isRegisterMode ? 'Already have an account? Login' : 'Need an account? Register'}
+                    </button>
+                  </div>
                 </form>
 
                 <div className="mt-12 p-6 bg-indigo-50 border border-indigo-100 rounded-2xl">

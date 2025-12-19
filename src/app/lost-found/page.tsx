@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { motion, AnimatePresence } from 'framer-motion';
+import { lostFoundAPI } from '@/lib/api';
 import { 
   Package, 
   Search, 
@@ -40,6 +41,23 @@ export default function LostFoundPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'lost' | 'found' | 'post' | 'heatmap'>('dashboard');
   const [postType, setPostType] = useState<'lost' | 'found'>('lost');
   
+  // Data states
+  const [lostItems, setLostItems] = useState<any[]>([]);
+  const [foundItems, setFoundItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Form states
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'electronics',
+    location: '',
+    date: new Date().toISOString().split('T')[0],
+    brand: '',
+    uniqueMarks: ''
+  });
+  
   // Messaging System
   const [showMessaging, setShowMessaging] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -61,6 +79,103 @@ export default function LostFoundPage() {
   
   // Status Tracking
   const [showStatusTimeline, setShowStatusTimeline] = useState(false);
+
+  // Fetch items on mount
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    setIsLoading(true);
+    try {
+      const [lost, found] = await Promise.all([
+        lostFoundAPI.getLostItems(),
+        lostFoundAPI.getFoundItems()
+      ]);
+      setLostItems(lost);
+      setFoundItems(found);
+    } catch (err: any) {
+      console.error('Error fetching items:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmitReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      if (postType === 'lost') {
+        await lostFoundAPI.createLostItem(formData);
+      } else {
+        await lostFoundAPI.createFoundItem(formData);
+      }
+      
+      // Reset form and fetch updated items
+      setFormData({
+        title: '',
+        description: '',
+        category: 'electronics',
+        location: '',
+        date: new Date().toISOString().split('T')[0],
+        brand: '',
+        uniqueMarks: ''
+      });
+      await fetchItems();
+      setActiveTab('dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit report');
+      console.error('Submit error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedItem) return;
+
+    const newMessage = {
+      id: messages.length + 1,
+      text: messageText,
+      sender: 'me',
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages([...messages, newMessage]);
+    setMessageText('');
+
+    // In a real app, send to backend
+    // await lostFoundAPI.sendMessage(selectedItem._id, messageText);
+  };
+
+  const handleVerificationSubmit = async () => {
+    if (!selectedItem) return;
+    
+    setIsLoading(true);
+    try {
+      // Create verification request
+      const verificationData = {
+        itemId: selectedItem._id,
+        answers: verificationAnswers,
+        proofPhotos: verificationProof
+      };
+
+      // In a real app, send to backend
+      // await lostFoundAPI.verifyOwnership(verificationData);
+      
+      alert('Verification submitted! The owner will review your request.');
+      setShowVerification(false);
+      setVerificationAnswers({ brand: '', uniqueMarks: '', contents: '' });
+      setVerificationProof([]);
+    } catch (err: any) {
+      setError(err.message || 'Verification failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
