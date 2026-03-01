@@ -27,8 +27,6 @@ That's it! Backend runs at **http://localhost:5000**
 
 ```env
 PORT=5000
-GEMINI_API_KEY=AIzaSyC_wEMvvzIdVSzXijccWkoW5tbB_LDceiQ
-MONGO_URI=mongodb+srv://rarodz04_db_user:Shando@cluster0.o9xmxyh.mongodb.net/backendPractice
 NODE_ENV=development
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 FRONTEND_URL=http://localhost:3000
